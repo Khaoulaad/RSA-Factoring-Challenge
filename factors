@@ -1,30 +1,49 @@
-#!/usr/bin/python3
-import sys
+#!/usr/bin/env bash
+# is a factors challenge
 
-def factorize(number):
-    factors = []
-    for i in range(2, number + 1):
-        while number % i == 0:
-            factors.append(i)
-            number //= i
-        if number == 1:
-            break
-    return factors
+check_factor()
+{
+	if [ $# -ne 3 ];
+        then
+                args=("$@")
+                count=0
+                num2=1
+                for a in ${args[*]};
+                do
+                        if [ $count -gt 1 ];
+                        then
+                                num2=$(echo $a*$num2 | bc)
+                        fi
+                        count=$((count + 1))
+                done
+        else
+                num2=$3
+        fi
 
-if len(sys.argv) != 2:
-    print("Usage: factors <file>")
-    sys.exit(1)
+        num1=$2
+        num=$(echo "$1" | tr ':' '=')
 
-try:
-    with open(sys.argv[1], 'r') as file:
-        for line in file:
-            number = int(line)
-            factors = factorize(number)
-            factors_str = '*'.join(map(str, factors))
-            print(f"{number}={factors_str}")
+        result=$(echo "if($num2 > $num1) 1 else 0" | bc)
+	        if ((result == 1)); then
+		        numcp=$num1
+		        num1=$num2
+		        num2=$numcp
+                fi
 
-except FileNotFoundError:
-    print(f"File '{sys.argv[1]}' not found.")
-except ValueError:
-    print("Invalid number in the file.")
+        echo "$num$num1*$num2"
+}
 
+if [ $# -ne 1 ]
+then
+        echo 'Usage: factors <file>'
+        exit 1
+else
+
+        while read i
+        do
+
+                result=$(factor "$i")
+                check_factor $result
+
+        done < "$1"
+fi
